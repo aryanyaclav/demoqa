@@ -1,13 +1,40 @@
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+# tests/test_login.py
+import pytest
 from pages.login_page import LoginPage
-from config import USERNAME, PASSWORD
 
-def test_login(driver):
+def test_valid_login(driver, config):
     login_page = LoginPage(driver)
-    login_page.open()
-    login_page.login(USERNAME, PASSWORD)
+    login_page.open_url(config["base_url"] + "/login")
 
-    WebDriverWait(driver, 10).until(EC.url_to_be("https://demoqa.com/profile"))
+    username = config["credentials"]["username"]
+    password = config["credentials"]["password"]
 
-    assert driver.current_url == "https://demoqa.com/profile"
+    login_page.login(username, password)
+
+    login_page.wait_for_login_success()
+
+    # Simple validation after login
+    assert "profile" in driver.current_url.lower()
+
+
+#------------------Negative Test ------------------
+
+@pytest.mark.parametrize("username,password,expected_error", [
+    ("correct_username", "wrong_password", "Invalid username or password!"),
+    ("wrong_username", "correct_password", "Invalid username or password!"),
+    ("wrong_username", "wrong_password", "Invalid username or password!")
+])
+def test_invalid_login(driver, config, username, password, expected_error):
+    login_page = LoginPage(driver)
+    login_page.open_url(config["base_url"] + "/login")
+
+    if username == "correct_username":
+        username = config["credentials"]["username"]
+    if password == "correct_password":
+        password = config["credentials"]["password"]
+
+    login_page.login(username, password)
+
+    # Simple validation after login
+    error_message = login_page.get_error_message()
+    assert expected_error in error_message
