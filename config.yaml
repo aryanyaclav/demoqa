@@ -1,0 +1,8 @@
+# config/config.yaml
+
+base_url: "https://demoqa.com"
+browser: "chrome"
+
+credentials:
+  username: "admin1"
+  password: "Ssl12345#"
